@@ -1,0 +1,48 @@
+html body .bg-light {
+  background-color: #f4f8fa !important;
+}
+
+body {
+  background: #ffffff;
+  font-family: "Montserrat", sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+  color: #8d97ad;
+  font-weight: 300;
+}
+
+#banner1 h2 {
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+html body .font-bold {
+  font-weight: 700;
+}
+
+.title {
+  margin: 20px 0 15px;
+}
+h2 {
+  line-height: 36px;
+  font-size: 30px;
+}
+h1, h2, h3, h4, h5, h6 {
+  color: #3e4555;
+  font-family: "Montserrat", sans-serif;
+}
+
+html body .m-b-30 {
+  margin-bottom: 30px;
+}
+html body .m-t-40 {
+  margin-top: 40px;
+}
+
+#banner1 {
+  background: right -25em center no-repeat #e9f3f8;
+}
+
+.space-250{
+  margin: 250px 20px;
+}
