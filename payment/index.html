@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Pembayaran untuk Reza</title>
+  <!-- Google Font Bold -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0b11;
+      --bg-2: #0f0f18;
+      --primary: #8a2be2; /* purple */
+      --primary-2: #b966ff;
+      --text: #ffffff;
+      --muted: #a5a5b3;
+      --ok: #00d084;
+      --danger: #ff4d6d;
+      --card: #11111a;
+      --shadow: rgba(138,43,226,.35);
+      --ring: rgba(185,102,255,.55);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; 
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(185,102,255,.15), transparent 60%),
+                 radial-gradient(800px 500px at -10% 20%, rgba(138,43,226,.18), transparent 60%),
+                 var(--bg);
+      color: var(--text); 
+      font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+      letter-spacing: .2px;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .container { 
+      max-width: 1080px; 
+      margin: 0 auto; 
+      padding: 0 20px; 
+    }
+
+    /* Header */
+    header {
+      position: sticky; 
+      top: 0; 
+      z-index: 50; 
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(11,11,17,.9), rgba(11,11,17,.35) 70%, transparent);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .nav { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 16px; 
+      padding: 14px 0; 
+    }
+    .brand { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-weight: 800; 
+      font-size: 18px; 
+      letter-spacing: .4px; 
+    }
+    .badge { 
+      font-size: 11px; 
+      padding: 4px 10px; 
+      border: 1px solid rgba(255,255,255,.12); 
+      border-radius: 999px; 
+      color: var(--muted); 
+    }
+
+    /* Hero */
+    .hero { 
+      display: grid; 
+      grid-template-columns: 1.1fr .9fr; 
+      align-items: center; 
+      gap: 40px; 
+      padding: 60px 0 40px;
+      min-height: 80vh;
+    }
+    .hero-content {
+      max-width: 580px;
+    }
+    .hero h1 { 
+      font-size: clamp(32px, 4.5vw, 48px); 
+      margin: 0 0 16px; 
+      line-height: 1.2; 
+      font-weight: 800;
+    }
+    .hero p { 
+      color: var(--muted); 
+      margin: 0 0 28px; 
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .cta {
+      display: inline-flex; 
+      align-items: center; 
+      gap: 10px; 
+      padding: 14px 24px; 
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12); 
+      background: linear-gradient(180deg, rgba(185,102,255,.16), rgba(185,102,255,.06));
+      cursor: pointer; 
+      font-weight: 700; 
+      box-shadow: 0 10px 28px var(--shadow); 
+      position: relative; 
+      overflow: hidden;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+      font-size: 15px;
+    }
+    .cta:hover { 
+      transform: translateY(-2px); 
+      border-color: rgba(185,102,255,.45); 
+      box-shadow: 0 12px 36px var(--shadow); 
+    }
+    .cta:active { transform: translateY(0); }
+
+    /* Ripple effect */
+    .ripple { 
+      position: absolute; 
+      border-radius: 50%; 
+      transform: scale(0);
+      animation: ripple .6s linear; 
+      background: rgba(185,102,255,.35); 
+      pointer-events: none; 
+    }
+    @keyframes ripple { 
+      to { 
+        transform: scale(10); 
+        opacity: 0; 
+      } 
+    }
+
+    .pfp-wrap { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+    }
+    .pfp {
+      width: clamp(200px, 38vw, 280px); 
+      aspect-ratio: 1; 
+      border-radius: 999px; 
+      position: relative; 
+      overflow: hidden;
+      background: conic-gradient(from 0deg, var(--primary), var(--primary-2), var(--primary)); 
+      padding: 4px;
+      box-shadow: 0 0 80px rgba(185,102,255,.25), inset 0 0 40px rgba(185,102,255,.15);
+      animation: floaty 5s ease-in-out infinite;
+    }
+    .pfp > img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      border-radius: inherit; 
+      display: block; 
+      filter: grayscale(.15) contrast(1.05); 
+    }
+    @keyframes floaty { 
+      0%,100% { transform: translateY(0) } 
+      50% { transform: translateY(-8px) } 
+    }
+
+    /* Cards / tabs */
+    .section { 
+      padding: 60px 0; 
+    }
+    .section h2 { 
+      font-size: clamp(26px, 3.5vw, 36px); 
+      margin: 0 0 24px; 
+      font-weight: 800;
+    }
+
+    .tabs { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      margin-bottom: 24px; 
+    }
+    .tab { 
+      padding: 10px 18px; 
+      border-radius: 999px; 
+      background: rgba(255,255,255,.04); 
+      border: 1px solid rgba(255,255,255,.08);
+      cursor: pointer; 
+      font-weight: 600; 
+      color: var(--muted); 
+      transition: all .18s ease; 
+      font-size: 14px;
+    }
+    .tab.active { 
+      color: var(--text); 
+      background: linear-gradient(180deg, rgba(185,102,255,.18), rgba(185,102,255,.06)); 
+      border-color: rgba(185,102,255,.45); 
+      box-shadow: 0 6px 24px var(--shadow); 
+    }
+
+    .grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 20px; 
+    }
+    
+    .card { 
+      background: linear-gradient(180deg, rgba(17,17,26,.85), rgba(17,17,26,.6)); 
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px; 
+      padding: 20px; 
+      box-shadow: 0 8px 24px rgba(0,0,0,.35); 
+      position: relative; 
+      overflow: hidden; 
+      height: 100%;
+    }
+    .card h3 { 
+      margin: 0 0 12px; 
+      font-size: 18px; 
+      font-weight: 700;
+    }
+    .muted { 
+      color: var(--muted); 
+      font-size: 13px; 
+    }
+
+    .row { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 10px; 
+      margin-bottom: 16px;
+    }
+    .pill { 
+      padding: 6px 12px; 
+      border-radius: 10px; 
+      background: rgba(255,255,255,.06); 
+      border: 1px solid rgba(255,255,255,.1);
+      font-size: 12px; 
+      font-weight: 500;
+    }
+
+    .copy-btn, .zoom-btn { 
+      padding: 8px 12px; 
+      border-radius: 10px; 
+      border: 1px solid rgba(255,255,255,.12); 
+      background: rgba(255,255,255,.04);
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: all .16s ease; 
+      font-size: 13px;
+    }
+    .copy-btn:hover, .zoom-btn:hover { 
+      background: rgba(185,102,255,.12); 
+      border-color: rgba(185,102,255,.45); 
+      box-shadow: 0 8px 24px var(--shadow); 
+    }
+
+    .acct {
+      display: grid; 
+      gap: 8px; 
+      margin: 16px 0 0;
+    }
+    .acct .label { 
+      font-size: 12px; 
+      color: var(--muted); 
+      font-weight: 500;
+    }
+    .acct .value { 
+      font-size: 20px; 
+      font-weight: 800; 
+      letter-spacing: .8px; 
+      color: var(--text);
+    }
+    .acct .name { 
+      font-size: 13px; 
+      color: var(--muted); 
+    }
+
+    /* QRIS thumbnail */
+    .qris-thumb { 
+      width: 100%; 
+      border-radius: 14px; 
+      border: 1px dashed rgba(255,255,255,.18); 
+      background: rgba(255,255,255,.03);
+      display: grid; 
+      place-items: center; 
+      padding: 20px; 
+      margin-top: 16px;
+    }
+    .qris-thumb img { 
+      width: 100%; 
+      max-height: 280px; 
+      object-fit: contain; 
+      display: block; 
+      filter: contrast(1.05); 
+    }
+
+    /* Modal */
+    .overlay { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,.75); 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 20px; 
+      z-index: 100; 
+    }
+    .overlay.active { 
+      display: flex; 
+    }
+    .modal { 
+      width: min(500px, 96vw); 
+      background: var(--card); 
+      border-radius: 16px; 
+      border: 1px solid rgba(255,255,255,.12); 
+      box-shadow: 0 20px 60px rgba(0,0,0,.5); 
+      overflow: hidden; 
+    }
+    .modal-head { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding: 16px 20px; 
+      border-bottom: 1px solid rgba(255,255,255,.06); 
+    }
+    .modal-body { 
+      padding: 20px; 
+    }
+    .modal-body img { 
+      width: 100%; 
+      height: auto; 
+      display: block; 
+      border-radius: 12px; 
+    }
+    .modal-actions { 
+      display: flex; 
+      gap: 10px; 
+      justify-content: flex-end; 
+      padding: 16px 20px; 
+    }
+
+    .btn { 
+      padding: 10px 16px; 
+      border-radius: 12px; 
+      border: 1px solid rgba(255,255,255,.12); 
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      cursor: pointer; 
+      font-weight: 600; 
+      letter-spacing: .2px; 
+      font-size: 14px;
+    }
+    .btn.primary { 
+      background: linear-gradient(180deg, rgba(185,102,255,.22), rgba(185,102,255,.1)); 
+      border-color: rgba(185,102,255,.55); 
+      box-shadow: 0 10px 28px var(--shadow); 
+    }
+    .btn.ghost:hover { 
+      border-color: rgba(255,255,255,.3); 
+    }
+
+    /* Form to send proof */
+    form#buktiForm { 
+      background: linear-gradient(180deg, rgba(17,17,26,.85), rgba(17,17,26,.6)); 
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px; 
+      padding: 24px; 
+      display: grid; 
+      gap: 16px; 
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .field { 
+      display: grid; 
+      gap: 8px; 
+    }
+    .field label { 
+      font-size: 14px; 
+      color: var(--muted); 
+      font-weight: 500;
+    }
+    .input, .file { 
+      padding: 12px 16px; 
+      border-radius: 12px; 
+      border: 1px solid rgba(255,255,255,.12); 
+      background: rgba(255,255,255,.04); 
+      color: var(--text); 
+      font-weight: 500; 
+      font-family: inherit;
+      font-size: 15px;
+    }
+    .file { 
+      padding: 12px; 
+      cursor: pointer;
+    }
+    input::placeholder {
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    .toast { 
+      position: fixed; 
+      left: 50%; 
+      bottom: 24px; 
+      transform: translateX(-50%) translateY(30px); 
+      opacity: 0; 
+      transition: all .25s ease;
+      padding: 12px 20px; 
+      border-radius: 12px; 
+      background: rgba(185,102,255,.14); 
+      border: 1px solid rgba(185,102,255,.5); 
+      box-shadow: 0 10px 28px var(--shadow);
+      z-index: 200; 
+      font-weight: 600; 
+      font-size: 14px;
+    }
+    .toast.show { 
+      transform: translateX(-50%) translateY(0); 
+      opacity: 1; 
+    }
+
+    footer { 
+      text-align: center; 
+      color: var(--muted); 
+      font-size: 13px; 
+      padding: 40px 0 30px; 
+      border-top: 1px solid rgba(255,255,255,.06);
+      margin-top: 40px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .hero { 
+        grid-template-columns: 1fr; 
+        gap: 40px;
+        text-align: center;
+        padding: 40px 0 30px;
+      }
+      .hero-content {
+        margin: 0 auto;
+      }
+      .pfp {
+        width: 220px;
+        margin: 0 auto;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        padding: 0 16px;
+      }
+      .nav {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 0;
+      }
+      .tabs {
+        justify-content: center;
+      }
+      .tab {
+        padding: 8px 14px;
+        font-size: 13px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .section {
+        padding: 40px 0;
+      }
+      .card {
+        padding: 16px;
+      }
+      form#buktiForm {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="brand">Payment <span class="badge">fast response</span></div>
+        <a href="#pay" class="cta" id="toPayments">Metode Pembayaran ▶</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- HERO / INTRO -->
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <h1>Pembayaran cepat, aman, dan Mudah</h1>
+        <p>
+          Setelah melakukan pembayaran, silahkan isi form bukti transfer di bawah, bukti transfer otomatis masuk ke telegram admin setelah mengisi form dibawa
+        </p>
+        <button class="cta" id="ctaStart">Lanjutkan Pembayaran ▶</button>
+      </div>
+      <div class="pfp-wrap">
+        <div class="pfp">
+          <!-- Ganti gambar ini dengan foto/logo kamu -->
+          <img src="https://files.catbox.moe/a3j12y.png" alt="Foto profil / logo" />
+        </div>
+      </div>
+    </section>
+
+    <!-- PAYMENT SECTION -->
+    <section class="section" id="pay">
+      <h2>Metode Pembayaran</h2>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-target="dana">DANA</button>
+        <button class="tab" data-target="shopee">SHOPEE PAY</button>
+        <button class="tab" data-target="bank">Bank Lain</button>
+        <button class="tab" data-target="qris">QRIS</button>
+      </div>
+
+      <!-- DANA -->
+      <div class="grid method" id="dana">
+        <article class="card">
+          <h3>DANA</h3>
+          <div class="row"><span class="pill">Instant • 24/7</span><button class="copy-btn" data-number="082320232281">Salin</button></div>
+          <div class="acct">
+            <div class="label">Nomor</div>
+            <div class="value">0823 2023 2281</div>
+            <div class="name">A/N : Rez* P*n*e*tu</div>
+          </div>
+        </article>
+      </div>
+
+      <!-- SHOPEE -->
+      <div class="grid method" id="shopee" style="display:none">
+        <article class="card">
+          <h3>Shopee Pay</h3>
+          <div class="row"><span class="pill">Instant • 24/7</span><button class="copy-btn" data-number="082320232281">Salin</button></div>
+          <div class="acct">
+            <div class="label">Nomor</div>
+            <div class="value">0823 2023 2281</div>
+            <div class="name">A/N W**** </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Bank Lain -->
+      <div class="grid method" id="bank" style="display:none">
+        <article class="card">
+          <h3>Bank BCA</h3>
+          <div class="row"><span class="pill">Realtime • 24/7</span><button class="copy-btn" data-number="3040881238">Salin</button></div>
+          <div class="acct">
+            <div class="label">No. Rekening</div>
+            <div class="value">304-088-1238</div>
+            <div class="name">A/N Rez* P*n*e*tu </div>
+          </div>
+        </article>
+        <article class="card">
+          <h3>SEABANK</h3>
+          <div class="row"><span class="pill">Realtime • 24/7</span><button class="copy-btn" data-number="901549365888">Salin</button></div>
+          <div class="acct">
+            <div class="label">No. Rekening</div>
+            <div class="value">9015 4936 5888</div>
+            <div class="name">A/N Rez* P*n*e*tu</div>
+          </div>
+        </article>
+      </div>
+
+      <!-- QRIS -->
+      <div class="grid method" id="qris" style="display:none">
+        <article class="card">
+          <h3>QRIS</h3>
+          <div class="row"><span class="pill">Semua e-Wallet & Bank</span><button class="zoom-btn" id="openQris">Unduh</button></div>
+          <div class="acct">
+            <div class="label">Atas Nama</div>
+            <div class="name">REZA CELL</div>
+          </div>
+          <div class="qris-thumb">
+            <!-- Ganti src di bawah dengan file qris kamu (disarankan host yang sama agar tombol download berfungsi) -->
+            <img id="qrisImg" src="qris.png" alt="QRIS" onerror="this.src='https://files.catbox.moe/x2vjv1.jpeg'">
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- KIRIM BUKTI TRANSFER -->
+    <section class="section" id="sendproof">
+      <h2>Kirim Bukti Transfer ke Admin</h2>
+      <!--
+        Catatan penting:
+        1) Agar benar-benar terkirim otomatis ke Telegram owner tanpa CORS error di browser,
+           kita kirim pakai ACTION form langsung ke Bot API.
+        2) Wajib isi BOT_TOKEN dan CHAT_ID di script bawah.
+        3) Upload foto wajib, biar bisa pakai endpoint sendPhoto.
+      -->
+      <form id="buktiForm" method="post" enctype="multipart/form-data" target="tgFrame">
+        <div class="field">
+          <label for="nama">Nama</label>
+          <input id="nama" name="nama" class="input" placeholder="Nama kamu" required />
+        </div>
+        <div class="field">
+          <label for="namatf">Nama Pengirim</label>
+          <input id="namatf" name="namatf" class="input" placeholder="A/N Pengirim" required />
+        </div>
+        <div class="field">
+          <label for="nominal">Nominal (Rp)</label>
+          <input id="nominal" name="nominal" class="input" inputmode="numeric" placeholder="100000" required />
+        </div>
+         <div class="field">
+          <label for="ket">Keperluan Transfer</label>
+          <input id="ket" name="ket" class="input" placeholder="Untuk beli pulsa" required />
+        </div>
+        <div class="field">
+          <label for="photo">Upload Foto Bukti Transfer (jpg/png)</label>
+          <input id="photo" name="photo" class="file" type="file" accept="image/*" required />
+        </div>
+
+        <!-- Fields untuk Telegram API -->
+        <input type="hidden" name="chat_id" id="tg_chat_id" />
+        <input type="hidden" name="caption" id="tg_caption" />
+        <input type="hidden" name="parse_mode" value="HTML" />
+
+        <div class="row" style="margin-top:6px">
+          <button type="submit" class="btn primary">Kirim Bukti</button>
+        </div>
+      </form>
+      <iframe name="tgFrame" style="width:1px;height:1px;border:0;opacity:0;pointer-events:none"></iframe>
+    </section>
+
+    <footer>Sistem Pembayaran Ke Reza Pangestu <span id="y"></span></footer>
+  </main>
+
+  <!-- MODAL QRIS -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <strong>QRIS • a.n. Reza Cell</strong>
+        <button class="btn ghost" id="closeModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <img id="qrisBig" src="qris.png" alt="QRIS Besar" onerror="this.src='https://files.catbox.moe/x2vjv1.jpeg'" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="downloadQris">Unduh</button>
+        <button class="btn primary" id="closeModal2">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">disalin</div>
+
+  <script>
+    // ====== KONFIG TELEGRAM ======
+    // Ganti sesuai bot kamu. Jangan commit token ke repo public.
+    const BOT_TOKEN = "8052169587:AAGoMJIUVejad4XVlWQcJ1iiAX7gTuPJdHk"; // contoh: 123456789:AA...
+    const CHAT_ID = "1041912177";     // contoh: 6282292370114 (id pribadi) atau -100xxxxxxxxxx (channel/group)
+
+    // ====== UTIL ======
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+    const toast = (message = "disalin") => {
+      const el = $('#toast'); el.textContent = message; el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 1600);
+    };
+
+    // ripple on .cta
+    function addRipple(e){
+      const r = document.createElement('span'); r.className='ripple';
+      const rect = e.currentTarget.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height); r.style.width = r.style.height = size + 'px';
+      r.style.left = (e.clientX - rect.left - size/2) + 'px';
+      r.style.top = (e.clientY - rect.top - size/2) + 'px';
+      e.currentTarget.appendChild(r); setTimeout(()=>r.remove(), 600);
+    }
+
+    // scroll to payments
+    const goPay = () => { document.getElementById('pay').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    $('#ctaStart').addEventListener('click', e => { addRipple(e); goPay(); });
+    $('#toPayments').addEventListener('click', e => { addRipple(e); goPay(); e.preventDefault(); });
+
+    // tabs logic
+    $$('#tabs .tab').forEach(btn => btn.addEventListener('click', () => {
+      $$('#tabs .tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const id = btn.dataset.target;
+      $$('.method').forEach(m => m.style.display = m.id === id ? '' : 'none');
+    }));
+
+    // copy number only
+    $$('.copy-btn').forEach(btn => btn.addEventListener('click', async () => {
+      const number = btn.getAttribute('data-number');
+      try { await navigator.clipboard.writeText(number); toast('nomor disalin'); }
+      catch { toast('gagal menyalin'); }
+    }));
+
+    // QRIS modal
+    const overlay = $('#overlay');
+    const openQris = () => overlay.classList.add('active');
+    const closeQris = () => overlay.classList.remove('active');
+    $('#openQris').addEventListener('click', openQris);
+    $('#closeModal').addEventListener('click', closeQris);
+    $('#closeModal2').addEventListener('click', closeQris);
+    overlay.addEventListener('click', e => { if(e.target === overlay) closeQris(); });
+
+    // Download QRIS, works best if qris.png di-host satu origin (CORS)
+    $('#downloadQris').addEventListener('click', async () => {
+      const img = $('#qrisBig');
+      try {
+        // coba fetch untuk same-origin
+        const res = await fetch(img.src);
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'qris.png'; a.click();
+        URL.revokeObjectURL(a.href);
+      } catch (err) {
+        toast('gagal download, pastikan file qris sama origin');
+      }
+    });
+
+    // Tahun footer
+    $('#y').textContent = new Date().getFullYear();
+
+    // Kirim bukti ke Telegram via form direct ke Bot API untuk hindari CORS fetch
+    const form = document.getElementById('buktiForm');
+    form.addEventListener('submit', (e) => {
+      // validasi dasar
+      if(!BOT_TOKEN || BOT_TOKEN.includes('YOUR_')) { e.preventDefault(); alert('Isi BOT_TOKEN dulu di script'); return; }
+      if(!CHAT_ID || CHAT_ID.includes('YOUR_')) { e.preventDefault(); alert('Isi CHAT_ID dulu di script'); return; }
+      if(!document.getElementById('photo').files.length){ e.preventDefault(); alert('Upload foto bukti dulu'); return; }
+
+      const nama = document.getElementById('nama').value.trim();
+      const namatf = document.getElementById('namatf').value.trim();
+      const nominal = document.getElementById('nominal').value.trim();
+      const ket = document.getElementById('ket').value.trim();
+      const caption = `<b>Bukti Transfer Masuk</b>%0A` +
+                      `Nama: <b>${nama}</b>%0A` +
+                      `Nama Pengirim: <b>${namatf}</b>%0A` +
+                      `Nominal: <b>Rp ${nominal}</b>%0A` +
+                      `Keterangan: <b>${ket}</b>%0A` +
+                      `Sumber: <b>Payment Web</b>`;
+
+      // set hidden fields
+      document.getElementById('tg_chat_id').value = CHAT_ID;
+      document.getElementById('tg_caption').value = decodeURIComponent(caption);
+
+      // set form action ke sendPhoto
+      form.action = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+      // akan submit ke iframe tgFrame, hasil JSON ditampilkan diam-diam
+      toast('terkirim...');
+    });
+  </script>
+</body>
+</html>
