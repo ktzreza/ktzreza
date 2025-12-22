@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Name Spinner</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f0f4f8;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            position: relative;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        canvas {
+            margin: 20px auto;
+            display: block;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            max-width: 100%;
+            height: auto;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .result {
+            margin: 20px 0;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            min-height: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            max-width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: none;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        /* Winner Popup Styles */
+        .winner-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.5s ease;
+            max-width: 90%;
+            width: 300px;
+        }
+
+        .winner-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .winner-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            margin: 15px 0;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            word-break: break-word;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+        }
+
+        .popup-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .popup-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close-popup {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .close-popup:hover {
+            color: #333;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            canvas {
+                width: 280px;
+                height: 280px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .winner-popup {
+                padding: 20px;
+                width: 250px;
+            }
+
+            .winner-name {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            canvas {
+                width: 250px;
+                height: 250px;
+            }
+
+            .winner-popup {
+                padding: 15px;
+                width: 220px;
+            }
+        }
+
+        .force-winner-container {
+            margin: 15px 0;
+            display: none;
+        }
+
+        .force-winner-container.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 id="toggleForceWinner">Spin untuk mendapatkan pemenang</h1>
+
+        <div class="force-winner-container" id="forceWinnerContainer">
+            <input type="text" id="winnerInput" placeholder="Enter name to force as winner" />
+        </div>
+
+        <canvas id="wheel" width="300" height="300"></canvas>
+
+        <div class="button-container">
+            <button id="spinBtn">SPIN</button>
+            </div>
+            <button onclick="updateNames()">Update Nama</button>
+            <button onclick="shuffleNames()">Acak Nama</button>
+        </div>
+        <div class="result" id="result"></div>
+
+        <div class="container">
+        <p>Edit Nama2 di bawah ini sesuai yang diinginkan, pisahkan tiap nama dengan tanda koma (,)</p>
+
+        <textarea id="nameInput" placeholder="Enter names separated by commas..." rows="4"></textarea>
+    </div>
+
+    <!-- Winner Popup -->
+    <div class="popup-backdrop" id="popupBackdrop"></div>
+    <div class="winner-popup" id="winnerPopup">
+        <span class="close-popup" onclick="hideWinnerPopup()">×</span>
+        <h2>🎉 SELAMATT ! 🎉</h2>
+        <div class="winner-name" id="winnerNameDisplay"></div>
+        <p>adalah Pemenangnya !!!</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+        const spinBtn = document.getElementById("spinBtn");
+        const result = document.getElementById("result");
+        const winnerInput = document.getElementById("winnerInput");
+        const winnerPopup = document.getElementById("winnerPopup");
+        const popupBackdrop = document.getElementById("popupBackdrop");
+        const winnerNameDisplay = document.getElementById("winnerNameDisplay");
+        const toggleForceWinnerBtn = document.getElementById("toggleForceWinner");
+        const forceWinnerContainer = document.getElementById("forceWinnerContainer");
+
+        let names = [];
+        let colors = [];
+        let numSegments = 0;
+        let anglePerSegment = 0;
+        let currentAngle = 0;
+        let isSpinning = false;
+        let lastSelectedIndex = -1;
+        let showWinnerInput = false;
+        let clickCount = 0;
+        let forcedWinnerName = ""; // Store the forced winner name
+
+        function generateColors(n) {
+            const baseColors = ["#f44336", "#4caf50", "#2196f3", "#ff9800", "#9c27b0", "#3f51b5"];
+            const generated = [];
+            for (let i = 0; i < n; i++) {
+                generated.push(baseColors[i % baseColors.length]);
+            }
+            return generated;
+        }
+
+        function drawWheel() {
+            const radius = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(currentAngle);
+
+            // Draw segments
+            for (let i = 0; i < numSegments; i++) {
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, i * anglePerSegment, (i + 1) * anglePerSegment);
+                ctx.fill();
+
+                // Draw divider lines
+                ctx.beginPath();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.moveTo(0, 0);
+                ctx.lineTo(radius * Math.cos(i * anglePerSegment), radius * Math.sin(i * anglePerSegment));
+                ctx.stroke();
+
+                // Add name (centered in segment)
+                ctx.save();
+                const segmentMiddleAngle = i * anglePerSegment + anglePerSegment / 2;
+                ctx.rotate(segmentMiddleAngle);
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 14px Arial";
+
+                // Adjust text position based on name length
+                const textRadius = radius * 0.6;
+                const maxWidth = radius * 0.8;
+                const name = names[i];
+
+                // Split long names into two lines
+                if (name.length > 8) {
+                    const middle = Math.floor(name.length / 2);
+                    const firstPart = name.substring(0, middle).trim();
+                    const secondPart = name.substring(middle).trim();
+                    ctx.fillText(firstPart, textRadius, -5);
+                    ctx.fillText(secondPart, textRadius, 15);
+                } else {
+                    ctx.fillText(name, textRadius, 5);
+                }
+                ctx.restore();
+            }
+
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Draw arrow
+            ctx.beginPath();
+            ctx.fillStyle = "#333";
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2 - 10, 20);
+            ctx.lineTo(canvas.width / 2 + 10, 20);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function showWinnerPopup(winner) {
+            winnerNameDisplay.textContent = winner;
+            popupBackdrop.classList.add("show");
+            winnerPopup.classList.add("show");
+            createConfetti();
+        }
+
+        function hideWinnerPopup() {
+            popupBackdrop.classList.remove("show");
+            winnerPopup.classList.remove("show");
+        }
+
+        function createConfetti() {
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + "%";
+                confetti.style.top = -10 + "px";
+                confetti.style.width = Math.random() * 10 + 5 + "px";
+                confetti.style.height = Math.random() * 10 + 5 + "px";
+                confetti.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+                document.body.appendChild(confetti);
+
+                // Animate confetti
+                setTimeout(() => {
+                    confetti.style.opacity = "1";
+                    confetti.style.top = "100%";
+                    confetti.style.left = Math.random() * 100 + "%";
+                    confetti.style.transition = "all " + (Math.random() * 3 + 2) + "s ease-out";
+
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }, i * 30);
+            }
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            if (names.length === 0) {
+                alert("Please add at least 2 names first!");
+                return;
+            }
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            const winnerName = forcedWinnerName || document.getElementById("winnerInput").value.trim();
+            let winningIndex;
+
+            if (winnerName) {
+                winningIndex = names.findIndex(
+                    (name) => name.trim().toLowerCase() === winnerName.toLowerCase()
+                );
+                if (winningIndex === -1) {
+                    alert("Winner name not found in list!");
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    return;
+                }
+            } else {
+                winningIndex = Math.floor(Math.random() * names.length);
+            }
+
+            // Calculate the angle where the winner should land (pointing straight up)
+            const anglePerSlice = (2 * Math.PI) / names.length;
+            // The target angle is the angle that would place the winner at the top (3*PI/2)
+            // We need to rotate the wheel so that this segment's center is at 3*PI/2
+            const targetAngle = (3 * Math.PI / 2) - (winningIndex * anglePerSlice + anglePerSlice / 2);
+
+            // Add some random offset to make it look more natural (within the segment)
+            const randomOffset = (Math.random() * anglePerSlice * 0.8) - (anglePerSlice * 0.4);
+
+            // Calculate the final rotation (multiple spins plus the target angle)
+            const totalSpins = 5;
+            const finalRotation = totalSpins * 2 * Math.PI + targetAngle + randomOffset;
+
+            let start = null;
+            const duration = 5000;
+
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                const progress = timestamp - start;
+                const easing = easeOutCubic(progress / duration);
+                currentAngle = easing * finalRotation;
+                drawWheel();
+
+                if (progress < duration) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentAngle = finalRotation % (2 * Math.PI);
+                    const winner = showWinner();
+                    showWinnerPopup(winner);
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        function showWinner() {
+            // The pointer is at 270 degrees (3*PI/2 radians)
+            // We need to find which segment is at this angle
+            const pointerAngle = (3 * Math.PI / 2);
+            // Calculate the angle of the segment that's at the pointer
+            const segmentAngle = (pointerAngle - currentAngle + 2 * Math.PI) % (2 * Math.PI);
+            const index = Math.floor(segmentAngle / anglePerSegment) % numSegments;
+
+            result.textContent = `Winner: ${names[index]}`;
+            return names[index];
+        }
+
+        function updateNames() {
+            const input = document.getElementById("nameInput").value;
+            const newNames = input
+                .split(",")
+                .map((name) => name.trim())
+                .filter((name) => name.length > 0);
+
+            if (newNames.length < 2) {
+                alert("Please enter at least two valid names.");
+                return;
+            }
+
+            names = newNames;
+            numSegments = names.length;
+            anglePerSegment = (2 * Math.PI) / numSegments;
+            colors = generateColors(numSegments);
+            lastSelectedIndex = -1;
+            currentAngle = 0;
+            drawWheel();
+        }
+
+        function shuffleNames() {
+            for (let i = names.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [names[i], names[j]] = [names[j], names[i]];
+            }
+
+            // Update textarea and redraw wheel
+            document.getElementById("nameInput").value = names.join(", ");
+            drawWheel();
+        }
+
+        function toggleForceWinner() {
+            clickCount++;
+            if (clickCount % 3 === 0) {
+                showWinnerInput = true;
+                forceWinnerContainer.classList.add("show");
+                // Restore the input value if we have a forced winner name
+                if (forcedWinnerName) {
+                    winnerInput.value = forcedWinnerName;
+                }
+            } else {
+                showWinnerInput = false;
+                forceWinnerContainer.classList.remove("show");
+                // Store the input value before clearing
+                forcedWinnerName = winnerInput.value.trim();
+                winnerInput.value = "";
+            }
+        }
+
+        // Event listeners
+        spinBtn.addEventListener("click", spinWheel);
+        toggleForceWinnerBtn.addEventListener("click", toggleForceWinner);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'w') {
+                e.preventDefault();
+                toggleForceWinner();
+            }
+        });
+
+        // Close popup when clicking on backdrop
+        popupBackdrop.addEventListener("click", hideWinnerPopup);
+        // Optional: preload names
+        window.onload = () => {
+            document.getElementById("nameInput").value = "Reza, Rizal, Danang, Dani, Danu, Satya";
+            updateNames();
+        };
+    </script>
+</body>
+
+</html>
