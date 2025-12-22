@@ -1,0 +1,12 @@
+{
+  "name": "intro-section-with-dropdown-navigation-main",
+  "version": "1.0.0",
+  "description": "![Design preview for the Intro-Section with dropdown navigation coding challenge](./design/desktop-preview.jpg)",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss -i ./asset/css/sass/output.css -o ./asset/css/tailwind/output.css",
+    "watch": "tailwindcss -i ./asset/css/sass/output.css -o ./asset/css/tailwind/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- displays site properly based on user's device -->
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  
+  <!-- custom style sheet -->
+  <link rel="stylesheet" href="./asset/css/tailwind/output.css">
+
+  <script defer src="./asset/js/main.js"></script>
+  <title>Frontend Mentor | Intro section with dropdown navigation</title>
+
+  <!-- Feel free to remove these styles or customise in your own stylesheet 👍 -->
+  <style>
+    .attribution { font-size: 11px; text-align: center; }
+    .attribution a { color: hsl(228, 45%, 44%); }
+  </style>
+</head>
+<body class="relative md:bg-almostWhite">
+  <!-- Header -->
+  <header class="w-full pl-8 flex flex-row justify-between align-center md:mt-8 md:px-8">
+    <h1 class="font-bold w-0/5"><a href="#">RZ HOME</a></h1>
+    <!-- navigation -->
+    <nav class="absolute top-0 right-0 w-0 py-28 overflow-hidden flex flex-col bg-almostWhite md:pl-8 md:p-6 md:overflow-visible md:ml-20 md:relative md:pt-0 md:pr-0 md:mt-4 md:flex-row md:justify-between md:align-center md:w-full">
+      <ul class="relative flex flex-col space-y-6 md:flex-row md:space-x-8 md:space-y-0">
+        <li class="dropdown-menu features">
+          <a href="#" class="dropdown-menu-header">
+            <span class="inline-block mr-6 md:mr-4 hover:text-almostBlack">My Features</span> 
+            <img class="arrow-icon-down inline-block" src="./images/icon-arrow-down.svg" alt="" srcset="">
+            <img class="arrow-icon-up hidden" src="./images/icon-arrow-up.svg" alt="" srcset=""> 
+          </a>
+          <ul class="ml-8 mt-6 mr-3 px-6 flex-col space-y-6 max-w-xl  rounded-xl bg-almostWhite md:absolute">
+            <li><a href="https://rz-home.web.id/quran/" class="flex space-x-6"><img src="./images/quran.svg" alt="" srcset=""><span>Al-Quran</span></a></li>  
+           <li><a href="https://rz-home.web.id/jadwal-sholat/" class="flex space-x-6"><img src="./images/jadwal.svg" alt="" srcset=""><span>Jadwal Sholat</span></a></li>
+            <li><a href="https://rz-home.web.id/gempa/" class="flex space-x-6"><img src="./images/gempa.svg" alt="" srcset=""><span>Cek Gempa BMKG</span></a></li>
+            <li><a href="https://rz-home.web.id/calculator/" class="flex space-x-6"><img src="./images/kalkulator.svg" alt="" srcset=""><span>Kalkulator</span></a></li>
+            <li><a href="https://rz-home.web.id/spinner/" class="flex space-x-6"><img src="./images/spinner.svg" alt="" srcset=""><span>Name Spin wheel</span></a></li>
+          </ul>
+           
+        <li class="dropdown-menu company">
+          <a href="#" class="dropdown-menu-header">
+            <span class="inline-block mr-6 md:mr-4 hover:text-almostBlack">Company</span> 
+            <img class="arrow-icon-down inline-block" src="./images/icon-arrow-down.svg" alt="" srcset="">
+            <img class="arrow-icon-up hidden" src="./images/icon-arrow-up.svg" alt="" srcset="">
+          </a>
+          <ul class="ml-8 mt-2 px-6 rounded-xl max-w-xl bg-almostWhite md:absolute">
+          <li><a href="#" class="flex space-x-6"><img src="./images/blog.svg" alt="" srcset=""><span>Blog</span></a></li>
+          <li><a href="https://rz-home.web.id/payment" class="flex space-x-6"><img src="./images/blog.svg" alt="" srcset=""><span>Payment</span></a></li>
+          </ul>
+        </li>
+        </br>
+        <li><a href="#">Contact Me</a></li>
+        <li><a href="#">About Me</a></li>
+      </ul>
+
+      <!-- Menu Close Icon -->
+      <div id="menu-close-icon" class="hidden absolute top-0 right-8 pt-6 md:hidden">
+      <img src="./images/icon-close-menu.svg" alt="" srcset="" class="md:hidden">
+      </div>
+    </nav>
+
+    <!-- Menu Open Icon -->
+    <div id="menu-open-icon" class="block pr-8 pt-6 md:hidden shrink-0">
+      <img src="./images/icon-menu.svg" alt="" srcset="">
+    </div>
+  </header>
+
+  <main class="mt-20 md:mt-0">
+    <section class="container flex flex-col-reverse md:flex-row sm:mx-auto md:justify-center md:mx-auto md:space-x-6">
+      <div class="relative mt-16 flex-col md:items-center text-center space-y-32 md:space-y-64 md:text-left md:w-2/4 lg:w-3/5 xl:w-2/5">
+      
+        <div class="wrapper flex flex-col space-y-14 md:mt-20">
+          <h2 class="font-bold text-almostBlack text-center md:max-w-xl md:text-left">
+              Selamat Datang
+          </h2>
+          <p class="max-w-lg mx-auto md:mx-0 md:text-left">
+            Silahkan klik pojok kanan atas 
+            Untuk memilih menu yang diinginkan
+          </p>
+          <button class="md:text-left">
+          </button>
+        </div>
+  
+        <!-- Sponsors -->
+        <div class="text-center md:text-left lg:absolute lg:bottom-0 lg:left-0">
+          <ul class="flex flex-row space-x-8 justify-center md:justify-start">
+            <li class="w-40 h-32"><a href="#"><img src="./images/client-databiz.svg" alt="" srcset=""></a></li>
+            <li class="w-40 h-32"><a href="#"><img src="./images/client-audiophile.svg" alt="" srcset=""></a></li>
+            <li class="w-40 h-32"><a href="#"><img src="./images/client-meet.svg" alt="" srcset=""></a></li>
+            <li class="w-40 h-32"><a href="#"><img src="./images/client-maker.svg" alt="" srcset=""></a></li>
+          </ul>
+        </div>
+        
+      </div>
+      
+      <div class="h-3/4 m-auto md:w-2/4 lg:w-2/5 xl:w-2/5">
+        <img src="./images/reza-mobile.png" alt="" class="md:hidden w-full h-full object-cover">
+        <img src="./images/image-hero-desktop.png" alt="" class="hidden md:block w-full h-full object-cover">
+      </div>
+    </section>
+    
+  </main>
+  
+  <div class="attribution mt-16 mb-2">
+    Edited By <a href="https://rezapangestu.my.id">Reza Pangestu</a>.
+  </div>
+</body>
+</html>
