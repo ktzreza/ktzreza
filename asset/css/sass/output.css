@@ -1,0 +1,114 @@
+@import url("https://fonts.googleapis.com/css2?family=Epilogue:wght@400&family=Open+Sans:wght@400&display=swap");
+@tailwind base;
+@tailwind utilities;
+@tailwind components;
+:root {
+  --font-size-rg: 1.6rem;
+  --font-size-md: 1.8rem;
+  --font-size-lg: 2.5rem;
+  --font-size-xl: 5rem;
+  --gap-md: 1rem;
+  --gap-lg: 2rem;
+  --font-family: Epilogue;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-rg);
+}
+
+a {
+  color: hsl(0deg, 0%, 41%);
+}
+
+h1 {
+  font-size: var(--font-size-lg);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+  line-height: 50px;
+}
+
+h1 > a, h2 > a {
+  color: hsl(0deg, 0%, 8%);
+}
+
+/* Theme */
+body {
+  background-color: hsl(0deg, 0%, 98%);
+  color: hsl(0deg, 0%, 41%);
+}
+
+body.light {
+  background-color: hsl(0deg, 0%, 0%);
+  color: hsl(0deg, 0%, 41%);
+}
+
+body.activated {
+  background-color: hsl(0deg, 0%, 41%);
+  color: hsl(0deg, 0%, 41%);
+  color: black;
+}
+
+.activated #menu-close-icon {
+  display: block;
+}
+
+.activated#menu-open-icon {
+  display: none;
+}
+
+nav {
+  z-index: 9999;
+  transition: 0.25s;
+}
+
+nav.activated {
+  width: 80%;
+  height: 100%;
+  position: fixed;
+  padding-left: 25px;
+}
+
+.features.show-or-hide .arrow-icon-down {
+  display: none;
+}
+
+.features.show-or-hide .arrow-icon-up {
+  display: inline-block;
+}
+
+.company.show-or-hide .arrow-icon-down {
+  display: none;
+}
+
+.company.show-or-hide .arrow-icon-up {
+  display: inline-block;
+}
+
+.dropdown-menu ul {
+  height: 0;
+  overflow: hidden;
+  transition: height 0.25s linear;
+  box-shadow: 1px 1px 4px hsl(0deg, 0%, 8%);
+}
+
+.dropdown-menu ul.slide-dropdown-menu {
+  overflow: visible;
+  padding-top: 8px;
+}
+
+.features ul.slide-dropdown-menu {
+  height: 160px;
+}
+
+.company ul.slide-dropdown-menu {
+  height: 40px;
+}
+
+/*# sourceMappingURL=output.css.map */
