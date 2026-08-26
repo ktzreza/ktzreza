@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BMKG Info Gempa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg-card: rgba(22, 27, 34, 0.55);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --text: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --accent: #00d4ff;
+            --accent-soft: rgba(0, 212, 255, 0.15);
+            --danger: #ff6b6b;
+            --danger-soft: rgba(255, 107, 107, 0.15);
+            --warning: #ffd93d;
+            --warning-soft: rgba(255, 217, 61, 0.15);
+            --success: #6bcb77;
+            --success-soft: rgba(107, 203, 119, 0.15);
+            --radius: 24px;
+            --radius-sm: 16px;
+            --radius-xs: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Bokeh Background */
+        .bokeh-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            overflow: hidden;
+        }
+        .bokeh-bg .spot {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.35;
+            animation: float 10s ease-in-out infinite;
+        }
+        .bokeh-bg .spot:nth-child(1) {
+            width: 160px; height: 160px;
+            background: rgba(0, 212, 255, 0.15);
+            top: 5%; left: 10%;
+            animation-delay: 0s;
+        }
+        .bokeh-bg .spot:nth-child(2) {
+            width: 240px; height: 240px;
+            background: rgba(99, 102, 241, 0.1);
+            top: 35%; right: 5%;
+            animation-delay: -2s;
+        }
+        .bokeh-bg .spot:nth-child(3) {
+            width: 120px; height: 120px;
+            background: rgba(0, 212, 255, 0.1);
+            bottom: 15%; left: 20%;
+            animation-delay: -4s;
+        }
+        .bokeh-bg .spot:nth-child(4) {
+            width: 200px; height: 200px;
+            background: rgba(139, 92, 246, 0.08);
+            top: 55%; left: 55%;
+            animation-delay: -6s;
+        }
+        .bokeh-bg .spot:nth-child(5) {
+            width: 140px; height: 140px;
+            background: rgba(0, 212, 255, 0.08);
+            bottom: 5%; right: 20%;
+            animation-delay: -3s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(15px, -20px) scale(1.05); }
+            66% { transform: translate(-10px, 10px) scale(0.95); }
+        }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        /* Glass Card Base */
+        .glass {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px) saturate(1.2);
+            -webkit-backdrop-filter: blur(24px) saturate(1.2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        /* Header */
+        header {
+            padding: 14px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(13, 17, 23, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .brand-icon {
+            width: 32px; height: 32px;
+            min-width: 32px;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 0 16px rgba(0, 212, 255, 0.25);
+        }
+        .brand-text {
+            min-width: 0;
+        }
+        .brand-text h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .brand-text span {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: var(--success-soft);
+            border: 1px solid rgba(107, 203, 119, 0.2);
+            border-radius: 100px;
+            font-size: 0.7rem;
+            color: var(--success);
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .live-pill .dot {
+            width: 5px; height: 5px;
+            min-width: 5px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--success);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Section Title */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 28px 0 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+        }
+        .section-title .icon {
+            width: 24px; height: 24px;
+            min-width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-soft);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .section-title .line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+            min-width: 20px;
+        }
+        .section-title .badge-count {
+            padding: 2px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Hero Card */
+        .hero-card {
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(99, 102, 241, 0.04));
+        }
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.5;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: var(--danger-soft);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            color: var(--danger);
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+        .hero-tag .ring {
+            width: 4px; height: 4px;
+            min-width: 4px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        .hero-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .hero-mag {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--danger), #ff9f43);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.04em;
+            flex-shrink: 0;
+        }
+        .hero-mag .unit {
+            font-size: 0.85rem;
+            font-weight: 600;
+            -webkit-text-fill-color: var(--text-secondary);
+            margin-left: 3px;
+        }
+        .hero-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .hero-info h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .hero-info p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .hero-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .chip strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .hero-shakemap {
+            margin-top: 16px;
+            width: 100%;
+        }
+        .hero-shakemap img {
+            width: 100%;
+            max-width: 100%;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            opacity: 0.9;
+            display: block;
+        }
+
+        /* Data Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .data-card {
+            padding: 18px;
+            animation: fadeUp 0.5s ease-out backwards;
+        }
+        .data-card:nth-child(1) { animation-delay: 0.02s; }
+        .data-card:nth-child(2) { animation-delay: 0.04s; }
+        .data-card:nth-child(3) { animation-delay: 0.06s; }
+        .data-card:nth-child(4) { animation-delay: 0.08s; }
+        .data-card:nth-child(5) { animation-delay: 0.10s; }
+        .data-card:nth-child(6) { animation-delay: 0.12s; }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+        .card-mag {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1;
+        }
+        .card-mag .unit {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 2px;
+        }
+        .card-status {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .status-safe {
+            background: var(--success-soft);
+            color: var(--success);
+            border: 1px solid rgba(107, 203, 119, 0.2);
+        }
+        .status-danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+        .card-loc {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .c-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .c-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+        }
+        .c-value {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .card-foot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            gap: 8px;
+        }
+        .card-foot .depth {
+            color: var(--accent);
+            font-weight: 600;
+            text-align: right;
+            line-height: 1.3;
+        }
+        .card-foot .date {
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Table */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .table-wrap::-webkit-scrollbar { display: none; }
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+        thead {
+            background: rgba(255,255,255,0.03);
+        }
+        th {
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td {
+            background: rgba(255,255,255,0.02);
+            color: var(--text);
+        }
+        .t-mag {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .t-wilayah {
+            max-width: 200px;
+            line-height: 1.4;
+        }
+        .t-dirasakan {
+            max-width: 180px;
+            line-height: 1.4;
+            font-size: 0.75rem;
+        }
+        .t-time {
+            white-space: nowrap;
+        }
+        .t-time .date {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.82rem;
+        }
+        .t-time .jam {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+        }
+
+        /* Mobile Card Alternative for Table */
+        .mobile-cards {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .m-card {
+            padding: 16px;
+            animation: fadeUp 0.4s ease-out backwards;
+        }
+        .m-card:nth-child(1) { animation-delay: 0.02s; }
+        .m-card:nth-child(2) { animation-delay: 0.04s; }
+        .m-card:nth-child(3) { animation-delay: 0.06s; }
+        .m-card:nth-child(4) { animation-delay: 0.08s; }
+        .m-card:nth-child(5) { animation-delay: 0.10s; }
+        .m-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        .m-card-mag {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .m-card-mag .unit {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .m-card-loc {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .m-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .m-card-meta .chip {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+        }
+        .m-card-felt {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .m-card-felt strong {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            gap: 14px;
+        }
+        .spinner {
+            width: 32px; height: 32px;
+            border: 2.5px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        /* Error */
+        .error-box {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .error-box h3 {
+            color: var(--danger);
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .error-box p {
+            font-size: 0.85rem;
+        }
+        .btn {
+            margin-top: 16px;
+            padding: 12px 32px;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            color: #0d1117;
+            border: none;
+            border-radius: var(--radius-xs);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
+            width: 100%;
+            max-width: 200px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(0, 212, 255, 0.35);
+        }
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Footer */
+        footer {
+            padding: 32px 0 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 500;
+        }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tablet */
+        @media (min-width: 640px) {
+            .container { padding: 0 24px; }
+            .brand-text h1 { font-size: 1.1rem; }
+            .section-title { font-size: 0.8rem; margin: 32px 0 16px; }
+            .section-title .icon { width: 28px; height: 28px; font-size: 13px; }
+            .hero-card { padding: 24px; }
+            .hero-mag { font-size: 3.2rem; }
+            .hero-info h2 { font-size: 1.1rem; }
+            .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+            .data-card { padding: 20px; }
+            .card-mag { font-size: 1.5rem; }
+            .card-loc { font-size: 0.88rem; }
+            .card-grid { gap: 10px; }
+            .c-value { font-size: 0.85rem; }
+            .table-wrap { border-radius: var(--radius); }
+            th, td { padding: 14px 16px; }
+            .btn { width: auto; }
+        }
+
+        /* Desktop */
+        @media (min-width: 900px) {
+            .container { padding: 0 24px; }
+            .hero-mag { font-size: 3.5rem; }
+            .hero-card { padding: 28px; }
+            .hero-info h2 { font-size: 1.15rem; }
+            .cards-grid { grid-template-columns: repeat(3, 1fr); }
+            .card-mag { font-size: 1.6rem; }
+            .table-wrap { display: block; }
+            .mobile-cards { display: none !important; }
+        }
+
+        /* Mobile-only: show card layout instead of table */
+        @media (max-width: 639px) {
+            .table-wrap { display: none; }
+            .mobile-cards { display: flex; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="bokeh-bg">
+        <div class="spot"></div>
+        <div class="spot"></div>
+        <div class="spot"></div>
+        <div class="spot"></div>
+        <div class="spot"></div>
+    </div>
+    <div class="noise"></div>
+
+    <header>
+        <div class="container">
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="brand-icon">~</div>
+                    <div class="brand-text">
+                        <h1>BMKG Info Gempa</h1>
+                        <span>Realtime Monitoring</span>
+                    </div>
+                </div>
+                <div class="live-pill">
+                    <span class="dot"></span>
+                    <span id="lastUpdate">Loading</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Memuat data gempa...</p>
+            </div>
+
+            <div id="error" class="error-box" style="display:none;">
+                <h3>Gagal memuat data</h3>
+                <p>Terjadi kesalahan saat mengambil data dari server.</p>
+                <button class="btn" onclick="loadData()">Coba Lagi</button>
+            </div>
+
+            <div id="content" style="display:none;">
+                <!-- Auto -->
+                <div class="section-title">
+                    <span class="icon">!</span>
+                    Gempa Terbaru
+                    <span class="badge-count">Auto</span>
+                    <span class="line"></span>
+                </div>
+                <div id="autoSection"></div>
+
+                <!-- Terkini -->
+                <div class="section-title">
+                    <span class="icon">#</span>
+                    Gempa Terkini
+                    <span class="badge-count">M5.0+</span>
+                    <span class="line"></span>
+                </div>
+                <div id="terkiniSection" class="cards-grid"></div>
+
+                <!-- Dirasakan -->
+                <div class="section-title">
+                    <span class="icon">@</span>
+                    Gempa Dirasakan
+                    <span class="badge-count">M2.5+</span>
+                    <span class="line"></span>
+                </div>
+                <div class="table-wrap glass">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Mag</th>
+                                <th>Kedalaman</th>
+                                <th>Lokasi</th>
+                                <th>Dirasakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dirasakanTable"></tbody>
+                    </table>
+                </div>
+                <div id="dirasakanMobile" class="mobile-cards"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Data bersumber dari <a href="https://bmkg.go.id" target="_blank">BMKG</a>
+        </div>
+    </footer>
+
+    <script>
+        const API_URL = 'https://api.siputzx.my.id/api/info/bmkg';
+        const FALLBACK = {"status":true,"data":{"auto":{"Infogempa":{"gempa":{"Tanggal":"01 Jun 2026","Jam":"17:32:23 WIB","DateTime":"2026-06-01T10:32:23+00:00","Coordinates":"-5.32,104.60","Lintang":"5.32 LS","Bujur":"104.60 BT","Magnitude":"2.8","Kedalaman":"9 km","Wilayah":"Pusat gempa berada di darat 20 km barat laut Tanggamus","Potensi":"Gempa ini dirasakan untuk diteruskan pada masyarakat","Dirasakan":"II-III Tanggamus, II-III Ulu Belu","Shakemap":"20260601173223.mmi.jpg","downloadShakemap":"https://data.bmkg.go.id/DataMKG/TEWS/20260601173223.mmi.jpg"}}},"terkini":{"Infogempa":{"gempa":[{"Tanggal":"28 Mei 2026","Jam":"08:46:21 WIB","DateTime":"2026-05-28T01:46:21+00:00","Coordinates":"-10.55,124.49","Lintang":"10.55 LS","Bujur":"124.49 BT","Magnitude":"5.1","Kedalaman":"10 km","Wilayah":"86 km Tenggara TIMORTENGAHSEL-NTT","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"26 Mei 2026","Jam":"15:39:10 WIB","DateTime":"2026-05-26T08:39:10+00:00","Coordinates":"-9.01,113.84","Lintang":"9.01 LS","Bujur":"113.84 BT","Magnitude":"5.1","Kedalaman":"10 km","Wilayah":"93 km Tenggara JEMBER-JATIM","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"26 Mei 2026","Jam":"05:03:43 WIB","DateTime":"2026-05-25T22:03:43+00:00","Coordinates":"-3.96,133.99","Lintang":"3.96 LS","Bujur":"133.99 BT","Magnitude":"5.1","Kedalaman":"10 km","Wilayah":"45 km Tenggara KAIMANA-PAPUABRT","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"26 Mei 2026","Jam":"03:39:21 WIB","DateTime":"2026-05-25T20:39:21+00:00","Coordinates":"1.06,126.19","Lintang":"1.06 LU","Bujur":"126.19 BT","Magnitude":"5.7","Kedalaman":"22 km","Wilayah":"125 km Tenggara BITUNG-SULUT","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"25 Mei 2026","Jam":"17:23:58 WIB","DateTime":"2026-05-25T10:23:58+00:00","Coordinates":"-7.55,128.64","Lintang":"7.55 LS","Bujur":"128.64 BT","Magnitude":"5.2","Kedalaman":"136 km","Wilayah":"115 km TimurLaut MALUKUBRTDAYA","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"23 Mei 2026","Jam":"19:40:26 WIB","DateTime":"2026-05-23T12:40:26+00:00","Coordinates":"-4.67,102.57","Lintang":"4.67 LS","Bujur":"102.57 BT","Magnitude":"5.3","Kedalaman":"17 km","Wilayah":"45 km BaratDaya BENGKULUSELATAN","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"22 Mei 2026","Jam":"08:05:09 WIB","DateTime":"2026-05-22T01:05:09+00:00","Coordinates":"1.07,126.18","Lintang":"1.07 LU","Bujur":"126.18 BT","Magnitude":"5.8","Kedalaman":"26 km","Wilayah":"124 km Tenggara BITUNG-SULUT","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"21 Mei 2026","Jam":"06:12:56 WIB","DateTime":"2026-05-20T23:12:56+00:00","Coordinates":"-6.06,130.47","Lintang":"6.06 LS","Bujur":"130.47 BT","Magnitude":"5.0","Kedalaman":"137 km","Wilayah":"231 km BaratLaut TANIMBAR","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"20 Mei 2026","Jam":"17:28:50 WIB","DateTime":"2026-05-20T10:28:50+00:00","Coordinates":"-8.09,119.21","Lintang":"8.09 LS","Bujur":"119.21 BT","Magnitude":"5.2","Kedalaman":"12 km","Wilayah":"65 km TimurLaut KOTA-BIMA-NTB","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"15 Mei 2026","Jam":"00:53:15 WIB","DateTime":"2026-05-14T17:53:15+00:00","Coordinates":"-6.09,130.56","Lintang":"6.09 LS","Bujur":"130.56 BT","Magnitude":"6.7","Kedalaman":"163 km","Wilayah":"224 km BaratLaut TANIMBAR","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"12 Mei 2026","Jam":"15:54:00 WIB","DateTime":"2026-05-12T08:54:00+00:00","Coordinates":"4.64,127.35","Lintang":"4.64 LU","Bujur":"127.35 BT","Magnitude":"5.3","Kedalaman":"89 km","Wilayah":"32 km Tenggara PULAUKARATUNG-SULUT","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"05 Mei 2026","Jam":"13:44:50 WIB","DateTime":"2026-05-05T06:44:50+00:00","Coordinates":"-10.11,119.30","Lintang":"10.11 LS","Bujur":"119.30 BT","Magnitude":"6.0","Kedalaman":"10 km","Wilayah":"37 km BaratDaya WANOKAKA-NTT","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"05 Mei 2026","Jam":"09:38:50 WIB","DateTime":"2026-05-05T02:38:50+00:00","Coordinates":"-6.41,130.23","Lintang":"6.41 LS","Bujur":"130.23 BT","Magnitude":"5.3","Kedalaman":"188 km","Wilayah":"210 km BaratLaut TANIMBAR","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"02 Mei 2026","Jam":"17:27:11 WIB","DateTime":"2026-05-02T10:27:11+00:00","Coordinates":"-5.64,130.92","Lintang":"5.64 LS","Bujur":"130.92 BT","Magnitude":"5.6","Kedalaman":"114 km","Wilayah":"201 km BaratLaut MALUKUTENGGARA","Potensi":"Tidak berpotensi tsunami"},{"Tanggal":"02 Mei 2026","Jam":"01:52:47 WIB","DateTime":"2026-05-01T18:52:47+00:00","Coordinates":"-7.52,128.53","Lintang":"7.52 LS","Bujur":"128.53 BT","Magnitude":"5.1","Kedalaman":"199 km","Wilayah":"107 km TimurLaut MALUKUBRTDAYA","Potensi":"Tidak berpotensi tsunami"}]}},"dirasakan":{"Infogempa":{"gempa":[{"Tanggal":"01 Jun 2026","Jam":"17:32:23 WIB","DateTime":"2026-06-01T10:32:23+00:00","Coordinates":"-5.32,104.60","Lintang":"5.32 LS","Bujur":"104.60 BT","Magnitude":"2.8","Kedalaman":"9 km","Wilayah":"Pusat gempa berada di darat 20 km barat laut Tanggamus","Dirasakan":"II-III Tanggamus, II-III Ulu Belu"},{"Tanggal":"01 Jun 2026","Jam":"04:30:07 WIB","DateTime":"2026-05-31T21:30:07+00:00","Coordinates":"-8.89,117.64","Lintang":"8.89 LS","Bujur":"117.64 BT","Magnitude":"3.9","Kedalaman":"10 km","Wilayah":"Pusat gempa berada di darat 50 km tenggara Sumbawa","Dirasakan":"III Kab. Sumbawa, III Kab. Sumbawa Barat"},{"Tanggal":"01 Jun 2026","Jam":"04:28:19 WIB","DateTime":"2026-05-31T21:28:19+00:00","Coordinates":"-2.01,140.27","Lintang":"2.01 LS","Bujur":"140.27 BT","Magnitude":"4.4","Kedalaman":"7 km","Wilayah":"Pusat gempa berada di laut 65 km utara Sentani","Dirasakan":"II Kota Jayapura, II Kab. Jayapura"},{"Tanggal":"30 Mei 2026","Jam":"04:46:49 WIB","DateTime":"2026-05-29T21:46:49+00:00","Coordinates":"-3.56,122.28","Lintang":"3.56 LS","Bujur":"122.28 BT","Magnitude":"3.2","Kedalaman":"4 km","Wilayah":"Pusat gempa berada di darat 19 km timur Konawe Utara","Dirasakan":"III Konawe Utara"},{"Tanggal":"29 Mei 2026","Jam":"22:37:35 WIB","DateTime":"2026-05-29T15:37:35+00:00","Coordinates":"-6.87,108.46","Lintang":"6.87 LS","Bujur":"108.46 BT","Magnitude":"2.4","Kedalaman":"14 km","Wilayah":"Pusat gempa berada di darat 12 Km utara Kuningan","Dirasakan":"II Kuningan"},{"Tanggal":"29 Mei 2026","Jam":"21:50:23 WIB","DateTime":"2026-05-29T14:50:23+00:00","Coordinates":"-5.33,104.62","Lintang":"5.33 LS","Bujur":"104.62 BT","Magnitude":"3.0","Kedalaman":"4 km","Wilayah":"Pusat gempa berada di darat 18 Km barat laut Tanggamus","Dirasakan":"I-II Ulu Belu Tanggamus"},{"Tanggal":"29 Mei 2026","Jam":"21:34:43 WIB","DateTime":"2026-05-29T14:34:43+00:00","Coordinates":"-3.56,122.30","Lintang":"3.56 LS","Bujur":"122.30 BT","Magnitude":"4.6","Kedalaman":"4 km","Wilayah":"Pusat gempa berada di darat 22 km timur Konawe Utara","Dirasakan":"III-IV Konawe Utara, III-IV Kendari, III Konawe Selatan, III Konawe"},{"Tanggal":"29 Mei 2026","Jam":"13:25:21 WIB","DateTime":"2026-05-29T06:25:21+00:00","Coordinates":"2.56,98.64","Lintang":"2.56 LU","Bujur":"98.64 BT","Magnitude":"3.2","Kedalaman":"4 km","Wilayah":"Pusat gempa berada di darat 10 km Barat Daya Samosir","Dirasakan":"II Samosir"},{"Tanggal":"29 Mei 2026","Jam":"06:20:01 WIB","DateTime":"2026-05-28T23:20:01+00:00","Coordinates":"-8.53,116.08","Lintang":"8.53 LS","Bujur":"116.08 BT","Magnitude":"3.2","Kedalaman":"10 km","Wilayah":"Pusat gempa berada di Darat 18 km utara Lombok Barat","Dirasakan":"II Kota Mataram , II Lombok Barat, II Lombok Tengah"},{"Tanggal":"29 Mei 2026","Jam":"04:43:40 WIB","DateTime":"2026-05-28T21:43:40+00:00","Coordinates":"-8.49,116.07","Lintang":"8.49 LS","Bujur":"116.07 BT","Magnitude":"3.1","Kedalaman":"13 km","Wilayah":"Pusat gempa berada di darat 18 km Barat Daya Lombok Utara","Dirasakan":"II Kota Mataram , II Lombok Barat"},{"Tanggal":"29 Mei 2026","Jam":"03:59:10 WIB","DateTime":"2026-05-28T20:59:10+00:00","Coordinates":"-8.37,109.03","Lintang":"8.37 LS","Bujur":"109.03 BT","Magnitude":"4.6","Kedalaman":"30 km","Wilayah":"Pusat gempa berada di laut 71 km tenggara Cilacap","Dirasakan":"II-III Cilacap"},{"Tanggal":"29 Mei 2026","Jam":"03:03:25 WIB","DateTime":"2026-05-28T20:03:25+00:00","Coordinates":"-8.53,116.08","Lintang":"8.53 LS","Bujur":"116.08 BT","Magnitude":"3.7","Kedalaman":"11 km","Wilayah":"Pusat gempa berada di darat 18 km utara Lombok Barat","Dirasakan":"III Kota Mataram , III Kab. Lombok Utara, III Kab. Lombok Barat, II Kab. Lombok Tengah"},{"Tanggal":"27 Mei 2026","Jam":"02:49:05 WIB","DateTime":"2026-05-26T19:49:05+00:00","Coordinates":"4.12,97.48","Lintang":"4.12 LU","Bujur":"97.48 BT","Magnitude":"4.4","Kedalaman":"4 km","Wilayah":"Pusat gempa berada di darat 20 km timur laut Gayolues","Dirasakan":"III Aceh Tamiang, II Langsa, II Aceh Tengah"},{"Tanggal":"26 Mei 2026","Jam":"16:30:12 WIB","DateTime":"2026-05-26T09:30:12+00:00","Coordinates":"-3.22,129.01","Lintang":"3.22 LS","Bujur":"129.01 BT","Magnitude":"3.0","Kedalaman":"10 km","Wilayah":"Pusat gempa berada di darat 11 km Timur Laut Maluku Tengah","Dirasakan":"I-II Amahai"},{"Tanggal":"26 Mei 2026","Jam":"15:39:10 WIB","DateTime":"2026-05-26T08:39:10+00:00","Coordinates":"-9.01,113.84","Lintang":"9.01 LS","Bujur":"113.84 BT","Magnitude":"5.1","Kedalaman":"10 km","Wilayah":"Pusat gempa berada di laut 93 km tenggara Jember","Dirasakan":"IV Jember, III Bondowoso, III Malang, II Blitar, III-IV Banyuwangi, II-III Denpasar, II Trenggalek, III Kuta, III Kuta Selatan"}]}}},"timestamp":"2026-06-01T14:41:56.933Z"};
+
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const content = document.getElementById('content');
+            const lastUpdate = document.getElementById('lastUpdate');
+
+            loading.style.display = 'flex';
+            error.style.display = 'none';
+            content.style.display = 'none';
+
+            try {
+                let data;
+                try {
+                    const res = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    data = await res.json();
+                } catch (e) {
+                    data = FALLBACK;
+                }
+                if (!data || !data.data) throw new Error('Invalid');
+
+                renderAuto(data.data.auto);
+                renderTerkini(data.data.terkini);
+                renderDirasakan(data.data.dirasakan);
+                renderDirasakanMobile(data.data.dirasakan);
+
+                const now = new Date();
+                lastUpdate.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            } catch (err) {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+            }
+        }
+
+        function renderAuto(auto) {
+            const g = auto.Infogempa.gempa;
+            const el = document.getElementById('autoSection');
+            el.innerHTML = `
+                <div class="glass hero-card">
+                    <div class="hero-tag"><span class="ring"></span>Gempa Terbaru</div>
+                    <div class="hero-body">
+                        <div class="hero-mag">${g.Magnitude}<span class="unit">Sr</span></div>
+                        <div class="hero-info">
+                            <h2>${g.Wilayah}</h2>
+                            <p>${g.Potensi || 'Informasi gempa terkini'}</p>
+                            <div class="hero-chips">
+                                <span class="chip"><strong>${g.Tanggal}</strong> ${g.Jam}</span>
+                                <span class="chip"><strong>Kedalaman</strong> ${g.Kedalaman}</span>
+                                <span class="chip"><strong>Koordinat</strong> ${g.Lintang}, ${g.Bujur}</span>
+                                ${g.Dirasakan ? `<span class="chip"><strong>Dirasakan</strong> ${g.Dirasakan}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${g.downloadShakemap ? `<div class="hero-shakemap"><img src="${g.downloadShakemap}" alt="Shakemap" onerror="this.style.display='none'"></div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderTerkini(terkini) {
+            const list = terkini.Infogempa.gempa;
+            const el = document.getElementById('terkiniSection');
+            el.innerHTML = list.map((g, i) => {
+                const tsunami = g.Potensi && g.Potensi.toLowerCase().includes('tsunami') && !g.Potensi.toLowerCase().includes('tidak');
+                return `
+                    <div class="glass data-card">
+                        <div class="card-top">
+                            <div class="card-mag">${g.Magnitude}<span class="unit">Sr</span></div>
+                            <span class="card-status ${tsunami ? 'status-danger' : 'status-safe'}">${tsunami ? 'Tsunami' : 'Aman'}</span>
+                        </div>
+                        <div class="card-loc">${g.Wilayah}</div>
+                        <div class="card-grid">
+                            <div class="c-item"><span class="c-label">Tanggal</span><span class="c-value">${g.Tanggal}</span></div>
+                            <div class="c-item"><span class="c-label">Jam</span><span class="c-value">${g.Jam}</span></div>
+                            <div class="c-item"><span class="c-label">Lintang</span><span class="c-value">${g.Lintang}</span></div>
+                            <div class="c-item"><span class="c-label">Bujur</span><span class="c-value">${g.Bujur}</span></div>
+                        </div>
+                        <div class="card-foot">
+                            <span class="date">${g.Kedalaman}</span>
+                            <span class="depth">${g.Potensi}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDirasakan(dirasakan) {
+            const list = dirasakan.Infogempa.gempa;
+            const el = document.getElementById('dirasakanTable');
+            el.innerHTML = list.map((g, i) => `
+                <tr style="animation: fadeUp 0.3s ease-out ${i * 0.03}s both;">
+                    <td class="t-time">
+                        <div class="date">${g.Tanggal}</div>
+                        <div class="jam">${g.Jam}</div>
+                    </td>
+                    <td class="t-mag">${g.Magnitude} <span style="font-size:0.7rem; color:var(--text-muted);">Sr</span></td>
+                    <td>${g.Kedalaman}</td>
+                    <td class="t-wilayah">${g.Wilayah}</td>
+                    <td class="t-dirasakan">${g.Dirasakan}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDirasakanMobile(dirasakan) {
+            const list = dirasakan.Infogempa.gempa;
+            const el = document.getElementById('dirasakanMobile');
+            el.innerHTML = list.map((g, i) => `
+                <div class="glass m-card" style="animation-delay: ${i * 0.03}s">
+                    <div class="m-card-top">
+                        <div class="m-card-mag">${g.Magnitude}<span class="unit">Sr</span></div>
+                        <span class="chip" style="font-size:0.7rem;">${g.Kedalaman}</span>
+                    </div>
+                    <div class="m-card-loc">${g.Wilayah}</div>
+                    <div class="m-card-meta">
+                        <span class="chip"><strong>${g.Tanggal}</strong></span>
+                        <span class="chip">${g.Jam}</span>
+                        <span class="chip">${g.Lintang}, ${g.Bujur}</span>
+                    </div>
+                    <div class="m-card-felt">
+                        <strong>Dirasakan</strong>
+                        ${g.Dirasakan}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        setInterval(loadData, 300000);
+        loadData();
+    </script>
+</body>
+</html>
