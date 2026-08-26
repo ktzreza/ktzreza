@@ -640,7 +640,7 @@
         <button class="btn ghost" id="closeModal">✕</button>
       </div>
       <div class="modal-body">
-        <img id="qrisBig" src="qris.png" alt="QRIS Besar" onerror="this.src='https://files.catbox.moe/x2vjv1.jpeg'" />
+        <img id="qrisBig" src="qris.jpg" alt="QRIS Besar" onerror="this.src='https://i.ibb.co/3YmcNR2w/qr-ID1020045019079-26-08-26-1787741874-1787741876822.jpg'" />
       </div>
       <div class="modal-actions">
         <button class="btn" id="downloadQris">Unduh</button>
@@ -713,7 +713,7 @@
         const res = await fetch(img.src);
         const blob = await res.blob();
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob); a.download = 'qris.png'; a.click();
+        a.href = URL.createObjectURL(blob); a.download = 'qris.jpg'; a.click();
         URL.revokeObjectURL(a.href);
       } catch (err) {
         toast('gagal download, pastikan file qris sama origin');
