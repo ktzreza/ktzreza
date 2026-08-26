@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konverter Satuan Panjang</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e6f0ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* tinggi penuh layar */
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #004080;
+      margin: 0;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .form-row input, .form-row select {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #004080;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 15px;
+      text-align: center;
+      flex: 1; /* biar area hasil fleksibel */
+    }
+    .equal-box {
+      background: #004080;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+    .bubbles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .bubble {
+      background: #0059b3;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 25px;
+      font-weight: bold;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards;
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+      }
+    }
+    footer {
+      background: #000;
+      color: #fff;
+      text-align: center;
+      padding: 12px;
+      margin-top: auto; /* dorong footer ke bawah */
+      font-size: 14px;
+    }
+    footer a {
+      color: #00aaff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    footer span.icon {
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Container hanya untuk input -->
+  <div class="container">
+    <h2>Konverter Satuan Panjang</h2>
+    <div class="form-row">
+      <input type="number" id="value" placeholder="Masukkan nilai">
+      <select id="fromUnit">
+        <option value="mm">Milimeter (mm)</option>
+        <option value="cm">Centimeter (cm)</option>
+        <option value="m">Meter (m)</option>
+        <option value="km">Kilometer (km)</option>
+        <option value="inch">Inci (inch)</option>
+        <option value="ft">Kaki (ft)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Hasil konversi di luar container putih -->
+  <div id="result" class="result"></div>
+
+  <footer>
+    <span class="icon">❤️</span> Created by 
+    <a href="https://rz-home.web.id" target="_blank">RZ Home</a>
+  </footer>
+
+  <script>
+    const input = document.getElementById('value');
+    const fromUnit = document.getElementById('fromUnit');
+    const resultDiv = document.getElementById('result');
+
+    function formatNumber(num) {
+      return Number.isInteger(num) ? num : parseFloat(num.toFixed(3));
+    }
+
+    function convertAll() {
+      const val = parseFloat(input.value);
+      const unit = fromUnit.value;
+      if (isNaN(val)) {
+        resultDiv.innerHTML = "<div class='equal-box'>Masukkan angka valid!</div>";
+        return;
+      }
+
+      let meter;
+      switch(unit) {
+        case 'mm': meter = val / 1000; break;
+        case 'cm': meter = val / 100; break;
+        case 'm': meter = val; break;
+        case 'km': meter = val * 1000; break;
+        case 'inch': meter = val / 39.3701; break;
+        case 'ft': meter = val / 3.28084; break;
+      }
+
+      const mm = formatNumber(meter * 1000);
+      const cm = formatNumber(meter * 100);
+      const m = formatNumber(meter);
+      const km = formatNumber(meter / 1000);
+      const inch = formatNumber(meter * 39.3701);
+      const ft = formatNumber(meter * 3.28084);
+
+      const bubbles = [];
+      let delay = 0;
+      function addBubble(content) {
+        bubbles.push(`<div class="bubble" style="animation-delay:${delay}s">${content}</div>`);
+        delay += 0.2;
+      }
+
+      if (unit !== 'mm') addBubble(`${mm} mm`);
+      if (unit !== 'cm') addBubble(`${cm} cm`);
+      if (unit !== 'm') addBubble(`${m} m`);
+      if (unit !== 'km') addBubble(`${km} km`);
+      if (unit !== 'inch') addBubble(`${inch} inch`);
+      if (unit !== 'ft') addBubble(`${ft} ft`);
+
+      resultDiv.innerHTML = `
+        <div class="equal-box">${val} ${unit} sama dengan</div>
+        <div class="bubbles">
+          ${bubbles.join('')}
+        </div>
+      `;
+    }
+
+    input.addEventListener('input', convertAll);
+    fromUnit.addEventListener('change', convertAll);
+  </script>
+</body>
+</html>
